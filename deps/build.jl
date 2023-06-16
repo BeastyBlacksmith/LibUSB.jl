@@ -1,6 +1,8 @@
+using Pkg
+Pkg.activate(@__DIR__)
+Pkg.instantiate()
 using libusb_jll
 using Clang.Generators
-using Clang.LibClang.Clang_jll
 
 header = joinpath(libusb_jll.artifact_dir, "include/libusb-1.0/libusb.h")
 cd(@__DIR__)
