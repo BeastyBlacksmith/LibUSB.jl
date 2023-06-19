@@ -19,17 +19,32 @@ if !LibUSB.is_null(handle)
     # @show packet_size = endpoint.wMaxPacketSize
     endpoint_address = 0x81
     buffer = Vector{UInt8}(undef, 8)
-    debounce_time = 30
+    debounce_time = 0
     actual_length = Ref(Cint(0))
     # LibUSB.Low.libusb_free_config_descriptor(config[])
     try
         while true
-            ret = LibUSB.Low.libusb_interrupt_transfer(handle, endpoint_address, buffer, length(buffer), actual_length, debounce_time)
-            @show ret
-            @show actual_length[]
-            @show buffer
-            if ret == LibUSB.Low.LIBUSB_SUCCESS && actual_length[] > 0
-                println(String(buffer))
+            ret = LibUSB.Low.libusb_bulk_transfer(handle, endpoint_address, buffer, length(buffer), actual_length, debounce_time)
+            if (ret == 0) && (actual_length[] > 0)
+                # println(string.(buffer, base=2, pad=8))
+                # check if first bit is set (middle)
+                if buffer[5] & 0x80 == 0x80
+                    @info "Middle hit"
+                end
+                # check if first bit is set (arrows)
+                if buffer[6] & 0x80 == 0x80
+                    @info "Right hit"
+                end
+                # check if second bit is set (arrows)
+                if (buffer[6] << 1) & 0x80 == 0x80
+                    @info "Up hit"
+                end
+                if (buffer[6] << 2) & 0x80 == 0x80
+                    @info "Down hit"
+                end
+                if (buffer[6] << 3) & 0x80 == 0x80
+                    @info "Left hit"
+                end
             end
             sleep(0.1)
         end
